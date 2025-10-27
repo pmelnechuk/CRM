@@ -1,0 +1,5 @@
+{
+  "name": "CRM con Supabase",
+  "description": "A simple and clean web CRM for managing companies, contacts, leads, and tasks, connected to a Supabase database. The application focuses on initial sales management with a Kanban board for leads and basic CRUD functionalities.",
+  "requestFramePermissions": []
+}
