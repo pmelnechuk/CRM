@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './services/supabaseClient';
 import { Auth } from './components/Auth';
 import { Sidebar } from './components/Sidebar';
@@ -11,7 +11,7 @@ import { CompanyForm } from './components/CompanyForm';
 import { ContactForm } from './components/ContactForm';
 import { TaskForm } from './components/TaskForm';
 import { useCrmData } from './hooks/useCrmData';
-import { Company, Contact, Lead, Task } from './types';
+import { Company, Contact, Lead, Task, TASK_STATUS_TRANSLATIONS, TASK_TYPE_TRANSLATIONS } from './types';
 import type { Session, User } from '@supabase/supabase-js';
 
 
@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>('kanban');
+  const [leadViewMode, setLeadViewMode] = useState<'kanban' | 'list'>('kanban');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
   
@@ -31,6 +32,14 @@ const App: React.FC = () => {
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
   const { leads, companies, contacts, tasks, loading, error, refreshData } = useCrmData();
+
+  const translatedTasks = useMemo(() => {
+    return tasks.map(task => ({
+      ...task,
+      type: TASK_TYPE_TRANSLATIONS[task.type] || task.type,
+      status: TASK_STATUS_TRANSLATIONS[task.status] || task.status,
+    }));
+  }, [tasks]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -84,9 +93,12 @@ const App: React.FC = () => {
     openModal('contact');
   };
     
-  const handleEditTask = (task: Task) => {
-    setTaskToEdit(task);
-    openModal('task');
+  const handleEditTask = (task: any) => {
+    const originalTask = tasks.find(t => t.id === task.id);
+    if (originalTask) {
+        setTaskToEdit(originalTask);
+        openModal('task');
+    }
   };
 
   const renderContent = () => {
@@ -95,6 +107,21 @@ const App: React.FC = () => {
 
     switch (currentView) {
       case 'kanban':
+        if (leadViewMode === 'list') {
+          return <CrmDataTable 
+                  data={leads} 
+                  columns={[
+                    { header: 'Empresa', accessor: 'companies.name' },
+                    { header: 'Contacto', accessor: 'contacts.name' },
+                    { header: 'Etapa', accessor: 'stage' },
+                    { header: 'Monto', accessor: 'amount' },
+                    { header: 'Fecha de Creación', accessor: 'created_at' },
+                    { header: 'Última Actualización', accessor: 'updated_at' },
+                  ]}
+                  title="Leads"
+                  onRowClick={handleEditLead}
+               />;
+        }
         return <KanbanBoard leads={leads} onUpdate={refreshData} onEditLead={handleEditLead} />;
       case 'companies':
         return <CrmDataTable 
@@ -103,7 +130,8 @@ const App: React.FC = () => {
                     { header: 'Nombre', accessor: 'name' },
                     { header: 'Industria', accessor: 'industry' },
                     { header: 'Ubicación', accessor: 'location' },
-                    { header: 'Creado', accessor: 'created_at' },
+                    { header: 'Fecha de Creación', accessor: 'created_at' },
+                    { header: 'Última Actualización', accessor: 'updated_at' },
                   ]}
                   title="Empresas"
                   onRowClick={handleEditCompany}
@@ -117,19 +145,21 @@ const App: React.FC = () => {
                     { header: 'Email', accessor: 'email' },
                     { header: 'Teléfono', accessor: 'phone' },
                     { header: 'Cargo', accessor: 'position' },
+                    { header: 'Fecha de Creación', accessor: 'created_at' },
                   ]}
                   title="Contactos"
                   onRowClick={handleEditContact}
                />;
       case 'tasks':
         return <CrmDataTable
-                  data={tasks}
+                  data={translatedTasks}
                   columns={[
                     { header: 'Descripción', accessor: 'description' },
                     { header: 'Tipo', accessor: 'type' },
                     { header: 'Estado', accessor: 'status' },
                     { header: 'Fecha Límite', accessor: 'due_date' },
                     { header: 'Lead (Empresa)', accessor: 'leads.companies.name' },
+                    { header: 'Fecha de Creación', accessor: 'created_at' },
                   ]}
                   title="Tareas"
                   onRowClick={handleEditTask}
@@ -158,7 +188,12 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-gray-100 font-sans">
       <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header currentView={currentView} onNewItem={handleNewItem} />
+        <Header 
+          currentView={currentView} 
+          onNewItem={handleNewItem}
+          leadViewMode={leadViewMode}
+          onLeadViewChange={setLeadViewMode}
+        />
         <main className="flex-1 flex overflow-hidden">
           {renderContent()}
         </main>

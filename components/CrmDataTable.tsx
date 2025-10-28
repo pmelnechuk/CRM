@@ -1,22 +1,42 @@
 import React from 'react';
 
-// A helper to render complex objects or format dates
+// Formatea una cadena de fecha a DD-MM-AAAA
+const formatDate = (dateString: string) => {
+  try {
+    // Evita formatear cadenas que no son fechas válidas
+    if (!dateString || !/\d{4}-\d{2}-\d{2}/.test(dateString)) {
+        return dateString;
+    }
+    const date = new Date(dateString);
+    // getTime() devuelve NaN para fechas inválidas
+    if (isNaN(date.getTime())) return dateString;
+    
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Los meses son 0-indexados
+    const year = date.getUTCFullYear();
+    
+    return `${day}-${month}-${year}`;
+  } catch (e) {
+    return dateString; // Devuelve el original si hay error
+  }
+};
+
+
+// Un ayudante para renderizar objetos complejos o formatear fechas
 const renderCell = (item: any, accessor: string): React.ReactNode => {
     const value = accessor.split('.').reduce((o, i) => (o ? o[i] : undefined), item);
 
     if (value instanceof Date) {
-        return value.toLocaleDateString();
+        return formatDate(value.toISOString());
+    }
+    // Si es una cadena de texto, verifica si parece una fecha
+    if (typeof value === 'string' && (value.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        return formatDate(value);
     }
     if (typeof value === 'object' && value !== null) {
         return JSON.stringify(value);
     }
-    if (typeof value === 'string' && (value.includes('T') && value.includes('Z'))) {
-      try {
-        return new Date(value).toLocaleDateString();
-      } catch (e) {
-        return value;
-      }
-    }
+    
     return value;
 }
 

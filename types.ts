@@ -16,6 +16,7 @@ export interface Company {
   industry?: string | null;
   location?: string | null;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface Contact {
@@ -26,6 +27,7 @@ export interface Contact {
   position?: string | null;
   company_id?: string | null;
   created_at?: string;
+  updated_at?: string;
   companies?: Company | null; // For joined data
 }
 
@@ -38,6 +40,7 @@ export interface Lead {
   company_id: string;
   contact_id?: string | null;
   created_at?: string;
+  updated_at?: string;
   companies?: Company | null; // For joined data
   contacts?: Contact | null; // For joined data
 }
@@ -45,8 +48,20 @@ export interface Lead {
 export const TASK_STATUSES = ['pending', 'done'] as const;
 export type TaskStatus = typeof TASK_STATUSES[number];
 
+export const TASK_STATUS_TRANSLATIONS: Record<TaskStatus, string> = {
+  pending: 'Pendiente',
+  done: 'Hecho',
+};
+
 export const TASK_TYPES = ['call', 'email', 'meeting', 'followup'] as const;
 export type TaskType = typeof TASK_TYPES[number];
+
+export const TASK_TYPE_TRANSLATIONS: Record<TaskType, string> = {
+  call: 'Llamada',
+  email: 'Correo',
+  meeting: 'Reunión',
+  followup: 'Seguimiento',
+};
 
 export interface Task {
     id: string;
@@ -55,6 +70,7 @@ export interface Task {
     status: TaskStatus;
     due_date: string;
     created_at?: string;
+    updated_at?: string;
     assigned_to?: string | null;
     lead_id: string;
     leads?: Lead | null;

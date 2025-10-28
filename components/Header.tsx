@@ -1,16 +1,18 @@
 import React from 'react';
 import { supabase } from '../services/supabaseClient';
-import { PlusCircleIcon, LogoutIcon } from './icons';
+import { PlusCircleIcon, LogoutIcon, KanbanIcon, TableIcon } from './icons';
 
 type View = 'kanban' | 'companies' | 'contacts' | 'tasks';
 
 interface HeaderProps {
   currentView: View;
   onNewItem: () => void;
+  leadViewMode?: 'kanban' | 'list';
+  onLeadViewChange?: (mode: 'kanban' | 'list') => void;
 }
 
 const viewTitles: Record<View, string> = {
-    kanban: 'Leads (Kanban)',
+    kanban: 'Leads',
     companies: 'Empresas',
     contacts: 'Contactos',
     tasks: 'Tareas'
@@ -23,7 +25,7 @@ const newItemButtonText: Record<View, string> = {
     tasks: 'Añadir Tarea'
 };
 
-export const Header: React.FC<HeaderProps> = ({ currentView, onNewItem }) => {
+export const Header: React.FC<HeaderProps> = ({ currentView, onNewItem, leadViewMode, onLeadViewChange }) => {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -31,7 +33,29 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNewItem }) => {
 
     return (
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
-            <h1 className="text-xl font-semibold text-gray-800">{viewTitles[currentView]}</h1>
+            <div className="flex items-center space-x-4">
+                <h1 className="text-xl font-semibold text-gray-800">
+                    {currentView === 'kanban' ? `Leads (${leadViewMode === 'kanban' ? 'Kanban' : 'Lista'})` : viewTitles[currentView]}
+                </h1>
+                {currentView === 'kanban' && onLeadViewChange && (
+                    <div className="flex items-center bg-gray-100 rounded-md p-1">
+                        <button
+                            onClick={() => onLeadViewChange('kanban')}
+                            className={`p-1 rounded-md transition-colors ${leadViewMode === 'kanban' ? 'bg-white shadow text-brand-primary' : 'text-gray-500 hover:text-gray-600'}`}
+                            title="Vista Kanban"
+                        >
+                            <KanbanIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => onLeadViewChange('list')}
+                            className={`p-1 rounded-md transition-colors ${leadViewMode === 'list' ? 'bg-white shadow text-brand-primary' : 'text-gray-500 hover:text-gray-600'}`}
+                            title="Vista de Lista"
+                        >
+                            <TableIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                )}
+            </div>
             <div className="flex items-center space-x-4">
                  <button
                     onClick={onNewItem}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { Task, Lead, TASK_STATUSES, TaskStatus, TASK_TYPES, TaskType } from '../types';
+import { Task, Lead, TASK_STATUSES, TaskStatus, TASK_TYPES, TaskType, TASK_TYPE_TRANSLATIONS, TASK_STATUS_TRANSLATIONS } from '../types';
 
 interface TaskFormProps {
   onClose: () => void;
@@ -104,13 +104,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSave, leads, task
         <div className="flex-1">
             <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
             <select id="type" name="type" value={formData.type} onChange={handleChange} className={inputClasses} required>
-                {TASK_TYPES.map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
+                {TASK_TYPES.map(type => <option key={type} value={type}>{TASK_TYPE_TRANSLATIONS[type]}</option>)}
             </select>
         </div>
         <div className="flex-1">
             <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
             <select id="status" name="status" value={formData.status} onChange={handleChange} className={inputClasses} required>
-                {TASK_STATUSES.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
+                {TASK_STATUSES.map(status => <option key={status} value={status}>{TASK_STATUS_TRANSLATIONS[status]}</option>)}
             </select>
         </div>
       </div>
